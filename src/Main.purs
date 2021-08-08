@@ -24,6 +24,7 @@ columnStyle  :: forall r. Html.IProp (style :: String | r) Msg
 columnStyle = styles
     [ Style  "display" "flex"
     , Style "flex-direction" "column"
+    , Style "align-items" "center"
     ]
 
 rowStyle  :: forall r. Html.IProp (style :: String | r) Msg
