@@ -10,9 +10,19 @@ import Spork.Html.Events (always_, onClick)
 import Spork.Html.Properties (Style(..), styles)
 import Web.UIEvent.MouseEvent (MouseEvent)
 import Data.Maybe (Maybe)
+import Data.List (List(..), (:))
 
-data Msg = Incr | Decr
-type Model = Int
+data Msg = Choice1 | ChoiceX | Choice2
+type Question =
+    { prompt :: String
+    , choice1::String
+    , choiceX:: String
+    , choice2::String
+    }
+type Model =
+    { questions :: List Question
+    , questionNumber :: Int
+    }
 
 msgOnClick :: forall r. Msg -> Html.IProp (onClick:: MouseEvent | r) Msg
 msgOnClick msg = onClick alwaysIncr
@@ -46,19 +56,37 @@ app = {
 }
 
 init :: Model
-init = 1
+init =
+   { questions:
+     { prompt: "Which is an agile principle?"
+     , choice1: "Customer satisfaction through early and continuous software delivery"
+     , choiceX: "Customer collaboration over contract negotiation"
+     , choice2: "Emphasizes the performance of the entire system"
+     }
+     :
+     { prompt: "Which is an agile principle?"
+     , choice1: "Welcome changing requirements, even late in development"
+     , choiceX: "Responding to change over following a plan"
+     , choice2: "Create the right to left feedback loops"
+     }
+     : Nil
+    ,
+    questionNumber: 1
+  }
 
 update :: Model -> Msg -> Model
-update model action = case action of
-    Incr -> model + 1
-    Decr -> model - 1
+update model@{questions: Nil} action = model
+update model@{questions: Cons _ tail, questionNumber} action =
+    model {questions = tail, questionNumber = questionNumber + 1}
 
 render :: Model -> Html Msg
-render x = column
-   [ Html.text ("Count: " <> show x)
-   , row
-       [ Html.button [msgOnClick Incr] [Html.text "up (+)"]
-       , Html.button [msgOnClick Decr] [Html.text "down (-)"]
+render {questions: Nil} = column [Html.text "Succsess 100% !"]
+render {questions: Cons {prompt, choice1, choiceX, choice2} _, questionNumber} = column
+   [ Html.text ("Question: " <> show questionNumber <>". " <> prompt)
+   , column
+       [ Html.button [msgOnClick Choice1] [Html.text $ "1. " <> choice1]
+       , Html.button [msgOnClick ChoiceX] [Html.text $ "X. " <> choiceX]
+       , Html.button [msgOnClick Choice2] [Html.text $ "2. " <> choice2]
        ]
    ]
 
