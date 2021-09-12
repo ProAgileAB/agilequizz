@@ -79,15 +79,42 @@ update model@{questions: Cons _ tail, questionNumber} action =
         Wrong -> newModel
     where newModel = model {questions = tail, questionNumber = questionNumber + 1}
 
+smallSpace :: String
+smallSpace = "10px"
+
+largeSpace :: String
+largeSpace = "30px"
+
+largeFontSize :: String
+largeFontSize = "x-large"
+
+choice :: Msg -> String -> Html Msg
+choice msg text = Html.button
+    [ styles
+        [ Style "padding" smallSpace
+        , Style "margin" smallSpace
+        , Style "border-radius" smallSpace
+        , Style "background-color" "aliceblue"
+        ]
+    , msgOnClick msg
+    ]
+    [Html.text text]
+
 render :: Model -> Html Msg
 render {questions: Nil, points} =
-    column [Html.text $ "Succsess " <> show points <>"/2 points!"]
+    column
+      [Html.div
+        [styles [Style "margin-top" "49vh", Style "font-size" largeFontSize]]
+        [Html.text $ "Success " <> show points <>"/2 points!"]
+      ]
 render {questions: Cons {prompt, choice1, choiceX, choice2} _, questionNumber} = column
-   [ Html.text ("Question: " <> show questionNumber <> ". " <> prompt)
+   [ Html.div
+       [styles [Style "font-size" largeFontSize, Style "margin-bottom" largeSpace]]
+       [Html.text ("Question: " <> show questionNumber <> ". " <> prompt)]
    , column
-       [ Html.button [msgOnClick Correct] [Html.text $ "1. " <> choice1]
-       , Html.button [msgOnClick Wrong] [Html.text $ "X. " <> choiceX]
-       , Html.button [msgOnClick Wrong] [Html.text $ "2. " <> choice2]
+       [ choice Correct $ "1. " <> choice1
+       , choice Wrong $ "X. " <> choiceX
+       , choice Wrong $ "2. " <> choice2
        ]
    ]
 
