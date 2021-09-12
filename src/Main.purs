@@ -12,16 +12,17 @@ import Web.UIEvent.MouseEvent (MouseEvent)
 import Data.Maybe (Maybe)
 import Data.List (List(..), (:))
 
-data Msg = Choice1 | ChoiceX | Choice2
+data Msg = Correct | Wrong
 type Question =
     { prompt :: String
-    , choice1::String
-    , choiceX:: String
-    , choice2::String
+    , choice1 :: String
+    , choiceX :: String
+    , choice2 :: String
     }
 type Model =
     { questions :: List Question
     , questionNumber :: Int
+    , points :: Int
     }
 
 msgOnClick :: forall r. Msg -> Html.IProp (onClick:: MouseEvent | r) Msg
@@ -49,44 +50,44 @@ row :: Array (Html Msg) -> Html Msg
 row = Html.div [rowStyle]
 
 app :: PureApp Model Msg
-app = {
-    init: init,
-    render: render,
-    update: update
-}
+app =
+    { init: init
+    , render: render
+    , update: update
+    }
 
 init :: Model
-init =
-   { questions:
+init = { questions , questionNumber: 1 , points: 0 } where
+   questions =
      { prompt: "Which is an agile principle?"
      , choice1: "Customer satisfaction through early and continuous software delivery"
      , choiceX: "Customer collaboration over contract negotiation"
      , choice2: "Emphasizes the performance of the entire system"
-     }
-     :
+     } :
      { prompt: "Which is an agile principle?"
      , choice1: "Welcome changing requirements, even late in development"
      , choiceX: "Responding to change over following a plan"
      , choice2: "Create the right to left feedback loops"
-     }
-     : Nil
-    ,
-    questionNumber: 1
-  }
+     } :
+     Nil
 
 update :: Model -> Msg -> Model
 update model@{questions: Nil} action = model
 update model@{questions: Cons _ tail, questionNumber} action =
-    model {questions = tail, questionNumber = questionNumber + 1}
+    case action of
+        Correct -> newModel {points = newModel.points + 1}
+        Wrong -> newModel
+    where newModel = model {questions = tail, questionNumber = questionNumber + 1}
 
 render :: Model -> Html Msg
-render {questions: Nil} = column [Html.text "Succsess 100% !"]
+render {questions: Nil, points} =
+    column [Html.text $ "Succsess " <> show points <>"/2 points!"]
 render {questions: Cons {prompt, choice1, choiceX, choice2} _, questionNumber} = column
-   [ Html.text ("Question: " <> show questionNumber <>". " <> prompt)
+   [ Html.text ("Question: " <> show questionNumber <> ". " <> prompt)
    , column
-       [ Html.button [msgOnClick Choice1] [Html.text $ "1. " <> choice1]
-       , Html.button [msgOnClick ChoiceX] [Html.text $ "X. " <> choiceX]
-       , Html.button [msgOnClick Choice2] [Html.text $ "2. " <> choice2]
+       [ Html.button [msgOnClick Correct] [Html.text $ "1. " <> choice1]
+       , Html.button [msgOnClick Wrong] [Html.text $ "X. " <> choiceX]
+       , Html.button [msgOnClick Wrong] [Html.text $ "2. " <> choice2]
        ]
    ]
 
